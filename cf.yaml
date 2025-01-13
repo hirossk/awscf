@@ -1,0 +1,86 @@
+AWSTemplateFormatVersion: '2010-09-09'
+# CloudFormationテンプレートのバージョン
+Description: CloudFormationテンプレートでVPCとパブリックサブネットを作成する
+# テンプレートの説明
+
+Resources:
+  VPC:
+    Type: 'AWS::EC2::VPC'
+    # VPCのリソースタイプ
+    Properties:
+      CidrBlock: '10.0.0.0/20'
+      # VPCのCIDRブロック
+      EnableDnsSupport: true
+      # DNSサポートを有効にする
+      EnableDnsHostnames: true
+      # DNSホスト名を有効にする
+      Tags:
+        - Key: Name
+          Value: MyVPC
+          # VPCのタグ
+
+  PublicSubnet:
+    Type: 'AWS::EC2::Subnet'
+    # サブネットのリソースタイプ
+    Properties:
+      VpcId: !Ref VPC
+      # VPCへの参照
+      CidrBlock: '10.0.1.0/24'
+      # サブネットのCIDRブロック
+      MapPublicIpOnLaunch: true
+      # 起動時にパブリックIPを割り当てる
+      AvailabilityZone: !Select [ 0, !GetAZs '' ]
+      # 最初のアベイラビリティゾーンを選択
+      Tags:
+        - Key: Name
+          Value: PublicSubnet
+          # サブネットのタグ
+
+  InternetGateway:
+    Type: 'AWS::EC2::InternetGateway'
+    # インターネットゲートウェイのリソースタイプ
+    Properties:
+      Tags:
+        - Key: Name
+          Value: MyInternetGateway
+          # インターネットゲートウェイのタグ
+
+  AttachGateway:
+    Type: 'AWS::EC2::VPCGatewayAttachment'
+    # VPCゲートウェイアタッチメントのリソースタイプ
+    Properties:
+      VpcId: !Ref VPC
+      # VPCへの参照
+      InternetGatewayId: !Ref InternetGateway
+      # インターネットゲートウェイへの参照
+
+  PublicRouteTable:
+    Type: 'AWS::EC2::RouteTable'
+    # ルートテーブルのリソースタイプ
+    Properties:
+      VpcId: !Ref VPC
+      # VPCへの参照
+      Tags:
+        - Key: Name
+          Value: PublicRouteTable
+          # ルートテーブルのタグ
+
+  PublicRoute:
+    Type: 'AWS::EC2::Route'
+    # ルートのリソースタイプ
+    Properties:
+      RouteTableId: !Ref PublicRouteTable
+      # ルートテーブルへの参照
+      DestinationCidrBlock: '0.0.0.0/0'
+      # デスティネーションCIDRブロック
+      GatewayId: !Ref InternetGateway
+      # インターネットゲートウェイへの参照
+
+  SubnetRouteTableAssociation:
+    Type: 'AWS::EC2::SubnetRouteTableAssociation'
+    # サブネットルートテーブルアソシエーションのリソースタイプ
+    Properties:
+      SubnetId: !Ref PublicSubnet
+      # サブネットへの参照
+      RouteTableId: !Ref PublicRouteTable
+      # ルートテーブルへの参照
