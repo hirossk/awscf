@@ -1,58 +1,46 @@
-AWSTemplateFormatVersion: '2010-09-09' # CloudFormationテンプレートのバージョン
-Description: CloudFormationテンプレートでVPCとパブリックサブネットを作成する # テンプレートの説明
+Resources: # リソースセクション
+  CFVPC: # VPCリソース
+    Type: AWS::EC2::VPC # リソースタイプはVPC
+    Properties: # プロパティセクション
+      CidrBlock: 10.0.0.0/20 # VPCのCIDRブロック
+      Tags: # タグセクション
+        - Key: Name # タグのキー
+          Value: CFVPC # タグの値
 
-Resources:
-  CFVPC:
-    Type: 'AWS::EC2::VPC' # VPCのリソースタイプ
-    Properties:
-      CidrBlock: '10.0.0.0/20' # VPCのCIDRブロック
-      EnableDnsSupport: true # DNSサポートを有効にする
-      EnableDnsHostnames: true # DNSホスト名を有効にする
-      Tags:
-        - Key: Name
-          Value: CFVPC # VPCのタグ
+  CFSubnet: # サブネットリソース
+    Type: AWS::EC2::Subnet # リソースタイプはサブネット
+    Properties: # プロパティセクション
+      VpcId: !Ref CFVPC # VPCリソースへの参照
+      CidrBlock: 10.0.0.0/24 # サブネットのCIDRブロック
+      Tags: # タグセクション
+        - Key: Name # タグのキー
+          Value: CFSubnet # タグの値
 
-  PublicSubnet:
-    Type: 'AWS::EC2::Subnet' # サブネットのリソースタイプ
-    Properties:
-      VpcId: !Ref CFVPC # VPCへの参照
-      CidrBlock: '10.0.1.0/24' # サブネットのCIDRブロック
-      MapPublicIpOnLaunch: true # 起動時にパブリックIPを割り当てる
-      AvailabilityZone: !Select [ 0, !GetAZs '' ] # 最初のアベイラビリティゾーンを選択
-      Tags:
-        - Key: Name
-          Value: PublicSubnet # サブネットのタグ
+  CFSecurityGroup: # セキュリティグループリソース
+    Type: AWS::EC2::SecurityGroup # リソースタイプはセキュリティグループ
+    Properties: # プロパティセクション
+      GroupDescription: Allow SSH access # セキュリティグループの説明
+      VpcId: !Ref CFVPC # VPCリソースへの参照
+      SecurityGroupIngress: # インバウンドルールセクション
+        - IpProtocol: tcp # プロトコルはTCP
+          FromPort: 22 # 開始ポート
+          ToPort: 22 # 終了ポート
+          CidrIp: 0.0.0.0/0 # 許可するIP範囲
 
-  InternetGateway:
-    Type: 'AWS::EC2::InternetGateway' # インターネットゲートウェイのリソースタイプ
-    Properties:
-      Tags:
-        - Key: Name
-          Value: MyInternetGateway # インターネットゲートウェイのタグ
-
-  AttachGateway:
-    Type: 'AWS::EC2::VPCGatewayAttachment' # VPCゲートウェイアタッチメントのリソースタイプ
-    Properties:
-      VpcId: !Ref VPC # VPCへの参照
-      InternetGatewayId: !Ref InternetGateway # インターネットゲートウェイへの参照
-
-  PublicRouteTable:
-    Type: 'AWS::EC2::RouteTable' # ルートテーブルのリソースタイプ
-    Properties:
-      VpcId: !Ref CFVPC # VPCへの参照
-      Tags:
-        - Key: Name
-          Value: PublicRouteTable # ルートテーブルのタグ
-
-  PublicRoute:
-    Type: 'AWS::EC2::Route' # ルートのリソースタイプ
-    Properties:
-      RouteTableId: !Ref PublicRouteTable # ルートテーブルへの参照
-      DestinationCidrBlock: '0.0.0.0/0' # デスティネーションCIDRブロック
-      GatewayId: !Ref InternetGateway # インターネットゲートウェイへの参照
-
-  SubnetRouteTableAssociation:
-    Type: 'AWS::EC2::SubnetRouteTableAssociation' # サブネットルートテーブルアソシエーションのリソースタイプ
-    Properties:
-      SubnetId: !Ref PublicSubnet # サブネットへの参照
-      RouteTableId: !Ref PublicRouteTable # ルートテーブルへの参照
+  CFInstance: # EC2インスタンスリソース
+    Type: AWS::EC2::Instance # リソースタイプはEC2インスタンス
+    Properties: # プロパティセクション
+      InstanceType: t2.micro # インスタンスタイプ
+      ImageId: ami-05576a079321f21f8 # AMI ID
+      SubnetId: !Ref CFSubnet # サブネットリソースへの参照
+      SecurityGroupIds: # セキュリティグループIDセクション
+        - !Ref CFSecurityGroup # セキュリティグループリソースへの参照
+      KeyName: vockey # キーペアの名前
+      BlockDeviceMappings: # ブロックデバイスマッピングセクション
+        - DeviceName: /dev/xvda # デバイス名
+          Ebs: # EBSセクション
+            VolumeSize: 10 # ボリュームサイズ
+            VolumeType: gp2 # ボリュームタイプ
+      Tags: # タグセクション
+        - Key: Name # タグのキー
+          Value: CFInstance # タグの値
