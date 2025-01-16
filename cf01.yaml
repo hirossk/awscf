@@ -1,0 +1,19 @@
+Resources: # リソースの定義
+  CFVPC: # VPCリソースの定義
+    Type: AWS::EC2::VPC # リソースのタイプはVPC
+    Properties: # VPCのプロパティ
+      CidrBlock: 10.0.0.0/20 # VPCのCIDRブロック
+      Tags: # VPCに付けるタグ
+        - Key: Name # タグのキー
+          Value: CFVPC # タグの値
+        - Key: AnotherKey
+          Value: 'key value'
+
+  CFSubnet: # サブネットリソースの定義
+    Type: AWS::EC2::Subnet # リソースのタイプはサブネット
+    Properties: # サブネットのプロパティ
+      VpcId: !Ref CFVPC # VPCリソースを参照
+      CidrBlock: 10.0.0.0/24 # サブネットのCIDRブロック
+      Tags: # サブネットに付けるタグ
+        - Key: Name # タグのキー
+          Value: CFSubnet # タグの値

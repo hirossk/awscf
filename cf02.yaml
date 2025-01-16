@@ -1,0 +1,32 @@
+Resources: # リソース
+  CFVPC: # VPCリソース
+    Type: AWS::EC2::VPC # VPCのタイプ
+    Properties: # プロパティ
+      CidrBlock: 10.0.0.0/20 # CIDRブロック
+      Tags: # タグ
+        - Key: Name # タグのキー
+          Value: CFVPC # タグの値
+
+  CFSubnet: # サブネットリソース
+    Type: AWS::EC2::Subnet # サブネットのタイプ
+    Properties: # プロパティ
+      VpcId: !Ref CFVPC # VPC ID
+      CidrBlock: 10.0.0.0/24 # CIDRブロック
+      Tags: # タグ
+        - Key: Name # タグのキー
+          Value: CFSubnet # タグの値
+
+  CFInstance: # インスタンスリソース
+    Type: AWS::EC2::Instance # インスタンスタイプ
+    Properties: # プロパティ
+      InstanceType: t2.micro # インスタンスタイプ
+      ImageId: ami-05576a079321f21f8 # AMI ID コンソールでIDを確認する
+      SubnetId: !Ref CFSubnet # サブネットID
+      BlockDeviceMappings: # ブロックデバイスのマッピング
+        - DeviceName: /dev/xvda # デバイス名
+          Ebs: # EBS設定
+            VolumeSize: 10 # ボリュームサイズ
+            VolumeType: gp2 # ボリュームタイプ
+      Tags: # タグ
+        - Key: Name # タグのキー
+          Value: CFInstance # タグの値
