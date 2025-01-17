@@ -47,6 +47,7 @@ Resources: # リソースセクション
           Value: CFInstance # タグの値
       NetworkInterfaces: # ネットワークインターフェースセクション
         - SubnetId: !Ref CFSubnet
+          DeviceIndex: 0
           AssociatePublicIpAddress: true
           GroupSet:
             - !Ref CFSecurityGroup
