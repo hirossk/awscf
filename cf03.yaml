@@ -33,9 +33,6 @@ Resources: # リソースセクション
     Properties: # プロパティセクション
       InstanceType: t2.micro # インスタンスタイプ
       ImageId: ami-05576a079321f21f8 # AMI ID
-      SubnetId: !Ref CFSubnet # サブネットリソースへの参照
-      SecurityGroupIds: # セキュリティグループIDセクション
-        - !Ref CFSecurityGroup # セキュリティグループリソースへの参照
       KeyName: vockey # キーペアの名前
       BlockDeviceMappings: # ブロックデバイスマッピングセクション
         - DeviceName: /dev/xvda # デバイス名

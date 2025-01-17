@@ -33,7 +33,7 @@ Resources:
   AttachGateway:
     Type: 'AWS::EC2::VPCGatewayAttachment' # VPCゲートウェイアタッチメントのリソースタイプ
     Properties:
-      VpcId: !Ref VPC # VPCへの参照
+      VpcId: !Ref CFVPC # VPCへの参照
       InternetGatewayId: !Ref InternetGateway # インターネットゲートウェイへの参照
 
   PublicRouteTable:
@@ -56,3 +56,35 @@ Resources:
     Properties:
       SubnetId: !Ref PublicSubnet # サブネットへの参照
       RouteTableId: !Ref PublicRouteTable # ルートテーブルへの参照
+
+  CFSecurityGroup: # セキュリティグループリソース
+    Type: AWS::EC2::SecurityGroup # リソースタイプはセキュリティグループ
+    Properties: # プロパティセクション
+      GroupDescription: Allow SSH access # セキュリティグループの説明
+      VpcId: !Ref CFVPC # VPCリソースへの参照
+      SecurityGroupIngress: # インバウンドルールセクション
+        - IpProtocol: tcp # プロトコルはTCP
+          FromPort: 22 # 開始ポート
+          ToPort: 22 # 終了ポート
+          CidrIp: 0.0.0.0/0 # 許可するIP範囲
+
+  CFInstance: # EC2インスタンスリソース
+    Type: AWS::EC2::Instance # リソースタイプはEC2インスタンス
+    Properties: # プロパティセクション
+      InstanceType: t2.micro # インスタンスタイプ
+      ImageId: ami-05576a079321f21f8 # AMI ID
+      KeyName: vockey # キーペアの名前
+      BlockDeviceMappings: # ブロックデバイスマッピングセクション
+        - DeviceName: /dev/xvda # デバイス名
+          Ebs: # EBSセクション
+            VolumeSize: 10 # ボリュームサイズ
+            VolumeType: gp2 # ボリュームタイプ
+      Tags: # タグセクション
+        - Key: Name # タグのキー
+          Value: CFInstance # タグの値
+      NetworkInterfaces: # ネットワークインターフェースセクション
+        - SubnetId: !Ref PublicSubnet
+          DeviceIndex: 0
+          AssociatePublicIpAddress: true
+          GroupSet:
+            - !Ref CFSecurityGroup
