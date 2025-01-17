@@ -12,6 +12,7 @@ Resources: # リソースセクション
     Properties: # プロパティセクション
       VpcId: !Ref CFVPC # VPCリソースへの参照
       CidrBlock: 10.0.0.0/24 # サブネットのCIDRブロック
+      MapPublicIpOnLaunch: true # パブリックIPの割り当て
       Tags: # タグセクション
         - Key: Name # タグのキー
           Value: CFSubnet # タグの値
@@ -44,3 +45,9 @@ Resources: # リソースセクション
       Tags: # タグセクション
         - Key: Name # タグのキー
           Value: CFInstance # タグの値
+      NetworkInterfaces: # ネットワークインターフェースセクション
+        - SubnetId: !Ref CFSubnet
+          AssociatePublicIpAddress: true
+          GroupSet:
+            - !Ref CFSecurityGroup
+
